@@ -1,10 +1,14 @@
 # Yalan Hattı
 
-Gerçek mekânda, her oyuncunun ayrı bir odada oturduğu ve birbirini telefonla aradığı aldatma oyunu için yönetim sistemi. Her odada bir tablet ve ona bağlı bir ahize durur. Görevler tablete gelir, aramalar tabletten yapılır, puanı sunucu tutar. Sunucu (yönetici) oyunu tek panelden yönetir, yapım ekibi hatları ve kayıtları ayrı ekranlardan izler.
+Yalan Hattı #1'i izlerken aklıma geldi. Oyuncular ayrı odalarda oturuyor, birbirine sadece telefonla ulaşabiliyor, puanları da sunucu tutuyor. Böyle bir çekimde tabletlerin, hatların ve kayıtların saatlerce sorunsuz çalışması lazım. Ben de çekim günü kullanılabilecek bir yönetim sistemi yazdım.
+
+Her odada bir tablet var. Oyuncu görevini tabletten görüyor, aramalarını da tabletten yapıyor. Sunucu oyunu tek panelden yönetiyor, yapım ekibi de hatları ve kayıtları kendi ekranından takip ediyor.
+
+11 etabın 4'ünü ekledim. Fikri göstermek için bu kadarı yeterliydi, gerisi de eklenebilir.
 
 ## Çalıştırma
 
-Node 22.18 veya üstü gerekir.
+Node 22.18 veya üstü gerekiyor.
 
 ```bash
 npm run setup
@@ -12,110 +16,107 @@ npm run build
 npm start
 ```
 
-Bilgisayarda `http://localhost:3000` açılır. Tabletler açılışta yazılan güvenli adresi kullanır, örneğin `https://192.168.1.121:3443`. Kurulum ya da uygulama mağazası gerekmez.
+Bilgisayarda `http://localhost:3000` açılıyor. Tabletlerin gireceği adresi terminal yazıyor, mesela `https://192.168.1.121:3443`. Uygulama kurmaya gerek yok, tarayıcı yetiyor.
 
-Tablet tarayıcıları adresi kendiliğinden `https`'e çevirir ve mikrofon yalnız güvenli adreste çalışır. `start.ts` ilk açılışta `certs/` altına yerel bir sertifika üretir (openssl gerekir, Git for Windows ile gelir) ve 3443'te tek bir güvenli kapı açar. Sertifika kendinden imzalı olduğu için her cihazda ilk açılışta bir kez "Gelişmiş > Devam et" denir. Bilgisayarın IP'si değişirse `certs/` klasörünü silip yeniden başlat.
+Tablet tarayıcıları mikrofonu sadece https'te açtığı için `start.ts` ilk açılışta `certs/` klasörüne bir sertifika üretiyor (openssl gerekiyor, Git for Windows ile geliyor). Sertifika kendinden imzalı, o yüzden her cihazda ilk seferde bir kez "Gelişmiş > Devam et" demek gerekiyor. Bilgisayarın IP'si değişirse `certs/` klasörünü silip tekrar başlatman yeterli.
 
 ## Ekranlar
 
-| Ekran | Kim kullanır | Adres |
+| Ekran | Kim kullanıyor | Adres |
 | --- | --- | --- |
-| Yönetim | Sunucu | `/yeni` ile oda açılır |
-| Tablet | Her oyuncu | QR kod ya da ana sayfa + oda kodu |
+| Yönetim | Sunucu | `/yeni` ile oda açılıyor |
+| Tablet | Oyuncular | QR kod ya da ana sayfadan oda kodu |
 | Hat durumu | Yapım ekibi | `/oda/KOD/hat` |
 | Uyarılar | Kayıt sorumlusu | `/oda/KOD/uyarilar` |
 | Sahne | Salondaki TV | `/oda/KOD/sahne` |
-| Hat afişi | Her odanın duvarı | `/oda/KOD/afis` (yazdırılır) |
+| Hat afişi | Oda duvarları | `/oda/KOD/afis` (yazdırılıyor) |
 
-Yönetim panelinin beş sekmesi var: Etap, Kurulum, Hat durumu, Puan, Kayıt. Etap sekmesi o anki aşamaya göre kendi ekranını açar: etap seçimi, kurallar, süre, sonuç.
+Yönetim panelinde beş sekme var: Etap, Kurulum, Hat durumu, Puan ve Kayıt. Etap sekmesi o an ne gerekiyorsa onu gösteriyor: etap seçimi, kurallar, süre ya da sonuç.
 
-## Akış
+## Oyun nasıl ilerliyor
 
-1. **Kurulum.** Kadro girilir. Her oyuncuya iki numara verilir:
-   - **Oda numarası** gizlidir, bütün bölüm boyunca sabittir, duvarda yazar (varsayılan 11, 12, 13…).
-   - **Hat numarası** aramak için kullanılır, 3 hanelidir (ayarla 4). Afişte isimsiz listelenir.
-   Tabletler QR'ı okutup listeden ismini seçer. Bir isim tek tablete bağlanır; tablet bozulursa yönetim "Ayır" der, yeni tablet aynı ismi alır.
-2. **Oyunu başlat.** Oda numaraları kilitlenir.
-3. **Etap aç.** Kurallar hem panelde (sunucu okur) hem tabletlerde görünür. Kayıt kontrolü onaylanmadan etap başlamaz.
-4. **Etap süresi.** Hatlar kendiliğinden açılır. Duraklatılabilir, süre eklenebilir, erken bitirilebilir.
-5. **Sonuç.** Her mini oyunun kendi oyun puanı vardır. Oyun puanına göre sıralama çıkar; eşitler sırayı paylaşır (iki 1. varsa ikisi de 1.'nin puanını alır, sonraki 3. sayılır). Sunucu etap başında genel tabloya yazılacak puanı seçer: 2-1-1 (varsayılan) ya da 3-2-1. Oyun puanı sıfır olan tablo puanı almaz. Sonuç ekranında sunucu herkesin puanını +/− ile elle değiştirebilir, eksi de verebilir. "Puanları tabloya yaz" ile kesinleşir.
+1. Kadroyu giriyorsun. Herkese iki numara veriliyor. Oda numarası gizli, bölüm boyunca değişmiyor ve duvarda yazıyor (11, 12, 13…). Hat numarası aramak için kullanılıyor, 3 ya da 4 haneli. Afişte hat numaraları isimsiz duruyor.
+2. Oyuncular tabletten QR'ı okutup listeden ismini seçiyor. Bir isim tek tablete bağlanıyor. Tablet bozulursa panelden "Ayır" deyip yenisine geçebiliyorsun.
+3. Oyunu başlatınca oda numaraları kilitleniyor.
+4. Etabı açınca kurallar hem panelde hem tabletlerde çıkıyor. Kayıt kontrol listesi onaylanmadan etap başlamıyor.
+5. Süre boyunca hatlar açık. Duraklatabilir, süre ekleyebilir ya da erken bitirebilirsin.
+6. Etap bitince oyun puanına göre sıralama çıkıyor, eşit olanlar aynı sırayı paylaşıyor. Genel tabloya 2-1-1 mi yoksa 3-2-1 mi yazılacağını etap başında seçiyorsun. Sonuç ekranında herkesin puanını elle değiştirebiliyorsun, gerekirse eksi de verebiliyorsun.
 
-Toplam 11 etap planlanıyor. Şu an hazır olanlar:
+## Hazır etaplar
 
-| Etap | Kural |
+| Etap | Nasıl oynanıyor |
 | --- | --- |
-| Tahmin Oyunu · Odada Kim Var? | Hatları arayıp kimin hangi odada kaldığını öğren. Listeye her oyuncunun oda numarasını yaz. Her doğru oda 1 oyun puanı. Yanlış ya da boş puan götürmez. Herkes listesini kilitlerse etap erken biter. Varsayılan 60 sn. |
-| Yeşil Buton Kırmızı Buton | Rastgele bir eşle eşleşirsin, eşinin adı ve hattı tablette görünür. İkiniz gizlice yeşil ya da kırmızı basarsınız. İkiniz yeşil +1/+1, kırmızı +2 yeşil 0, ikiniz kırmızı 0/0. Sonuç anında açıklanır, daha önce eşleşmediğin biriyle yeniden eşleşirsin; herkesle eşleştiysen en az karşılaştığınla. Eş 40 sn içinde basmazsa (ayarlanabilir) basmayan 0 alır, basan eşi yeşil basmış gibi alır. Süre bitince yarım kalan eşleşmeler puansız kapanır. Varsayılan 5 dk. |
-| Bomba Patlama | Salonda fiziksel oynanır. Tabletlerde "Bu oyun salonda oynanıyor" ve genel puan görünür. Puanları sunucu sonuç ekranında artı ya da eksi girer. |
-| Sevgi Oyu | Tablette diğer oyuncuların isimleri çıkar, bir kişiye oy verilir. Kendine oy verilemez, süre bitene kadar oy değişebilir. Aldığın her oy 1 oyun puanı. Kimin kime oy verdiği sonuçta tabletlerde ve sahnede açıklanır. Varsayılan 2 dk. |
+| Tahmin Oyunu | Hatları arayıp kimin hangi odada olduğunu bulmaya çalışıyorsun. Her doğru oda 1 puan, yanlış cevap puan götürmüyor. Herkes listesini kilitlerse etap erken bitiyor. |
+| Yeşil Buton Kırmızı Buton | Rastgele biriyle eşleşiyorsun, ikiniz de gizlice yeşil ya da kırmızı basıyorsunuz. İkiniz de yeşil basarsanız +1/+1, biriniz kırmızı basarsa kırmızı basan +2 alıyor, ikiniz de kırmızı basarsanız iki taraf da 0. Sonra daha önce eşleşmediğin biriyle eşleşiyorsun. Eşin 40 saniye içinde basmazsa sen yeşil basmış gibi puan alıyorsun, o 0 alıyor. |
+| Bomba Patlama | Salonda oynanıyor. Tablette sadece genel puan görünüyor, puanları sunucu elle giriyor. |
+| Sevgi Oyu | Kendin hariç birine oy veriyorsun, süre bitene kadar değiştirebiliyorsun. Aldığın her oy 1 puan. Kimin kime oy verdiği sonda açıklanıyor. |
 
 ## Telefon
 
-- Aramalar tabletler arasında doğrudan, yerel ağ üzerinden gider (WebRTC). İnternet gerekmez.
-- Numara tuşlanır, karşı tarafta çalar, açılır, kapatılır. Görüşmedeki kişiyi arayan **meşgul** sesi duyar. Kullanılmayan numara üç tonlu uyarı verir. Açılmayan arama çalma süresi dolunca cevapsız kalır.
-- **Ses değiştirici:** her oyuncunun kendi ses tonu var, ses tablette gerçek zamanlı değiştirilir. Panelden kapatılabilir.
-- **Arayan numarası:** varsayılan kapalı, telefon yalnız çalar. Panelden açılırsa arayanın hattı görünür, ismi asla görünmez.
-- **Kayıt:** her görüşme arayan tablette iki taraflı kaydedilir ve görüşme bitince sunucuya yüklenir (`server/data/rooms/KOD/recordings/`). Yönetim panelinde dinlenir.
-- Kim kimi, ne zaman, kaç saniye aradı: hepsi olay günlüğünde. Sonraki etaplar bu kaydı puanlamada kullanabilir.
+- Tabletler birbirini yerel ağ üzerinden arıyor (WebRTC), internet gerekmiyor.
+- Numarayı tuşluyorsun, karşı tarafta çalıyor. Konuşan birini ararsan meşgul sesi geliyor, kullanılmayan bir numarayı ararsan uyarı sesi duyuyorsun.
+- Her oyuncunun sesi kendi tonuyla değiştiriliyor. Panelden kapatılabiliyor.
+- Arayanın numarası varsayılan olarak görünmüyor, panelden açılabiliyor. İsim hiçbir zaman görünmüyor.
+- Her görüşme kaydediliyor ve panelden dinlenebiliyor.
 
-Mikrofon yoksa ya da izin verilmezse tablet "test sesi" ile çalışır; böylece kurulum ahizesiz de denenebilir.
+Mikrofon yoksa tablet test sesiyle çalışıyor, böylece kurulumu ahize olmadan da deneyebilirsin.
 
-## Çekimde kayıp yaşanmasın diye
+## Çekimde bir şey kaçmasın diye
 
-- **Kayıt kontrol listesi.** Liste onaylanmadan etap başlamaz: kameralar, kart yeri, ses, klaket, tablet şarjı.
-- **Klaket.** Yönetimden işaret konunca bütün ekranlar 3 saniye beyaz zemin üstünde etiket ve saat gösterir. Kurgu, görüntüyü bu saatle günlüğe eşler.
-- **Olay günlüğü.** Katılım, arama, görüşme süresi, liste, kilit, puan, kopma: hepsi saniyesiyle yazılır. CSV ya da JSON indirilir.
-- **Hat durumu.** Her oda için kim boşta, kim kimi arıyor, kim kiminle kaç saniyedir konuşuyor, kimin tableti koptu: canlı.
+- **Kontrol listesi:** kameralar, kart, ses, klaket ve tablet şarjı onaylanmadan etap başlamıyor.
+- **Klaket:** panelden işaret verince bütün ekranlarda 3 saniye boyunca etiket ve saat çıkıyor. Kurguda görüntüyü günlükle eşlemek için.
+- **Olay günlüğü:** kim kimi aradı, ne kadar konuştu, kim ne zaman kilitledi, puanlar, kopmalar... hepsi saniyesiyle kaydediliyor. CSV ya da JSON olarak indirilebiliyor.
+- **Hat durumu:** kim boşta, kim kiminle kaç saniyedir konuşuyor, kimin tableti koptu, hepsi canlı görünüyor.
 
 ## Uyarılar
 
-Sunucu her yarım saniyede odayı denetler. Uyarı ekranı sesli ve titreşimli haber verir, izin verilirse tarayıcı bildirimi gönderir. Yönetim panelinde aynı uyarılar sağ üstte kısa süreli görünür.
+Sistem odayı yarım saniyede bir kontrol ediyor. Uyarı ekranı sesli ve titreşimli haber veriyor, izin verilirse tarayıcı bildirimi de gönderiyor.
 
 | Durum | Önem |
 | --- | --- |
-| Oyuncunun tableti 4 sn'den uzun süredir bağlı değil | Kritik |
-| Pil %10'un altında, şarjda değil | Kritik |
+| Tablet 4 saniyeden uzun süredir bağlı değil | Kritik |
+| Pil %10'un altında ve şarjda değil | Kritik |
 | Oyun başladı ama oyuncu tablete bağlanmadı | Uyarı |
 | Pil %20'nin altında | Uyarı |
-| 12 sn'dir sinyal yok ya da gecikme 800 ms üstünde | Uyarı |
-| Etabın son 30 sn'si, listesi eksik ve kilitsiz olan var | Uyarı |
+| 12 saniyedir sinyal yok ya da gecikme 800 ms'nin üstünde | Uyarı |
+| Etabın son 30 saniyesi ve listesini kilitlemeyen var | Uyarı |
 | Yönetim paneli kapalı | Uyarı |
-| Etap duraklatıldı, sahne ekranı koptu, son klaketten 20 dk geçti | Bilgi |
+| Etap duraklatıldı, sahne ekranı koptu ya da son klaketin üstünden 20 dakika geçti | Bilgi |
 
-## Çökmeye dayanıklılık
+## Bir şey çökerse
 
-- Sunucu her değişiklikte durumu diske yazar (`server/data/rooms/KOD/`). Önce geçici dosyaya yazar, sonra yerine taşır; yarım dosya kalmaz.
-- Sunucu kapanıp açılırsa oyun kaldığı yerden sürer: etap, süre, listeler, hatlar.
-- Tablet koparsa kendiliğinden yeniden bağlanır, aynı oyuncu olarak döner.
-- Bağlantı yokken gönderilen işlem 90 saniye bekletilir, bağlantı gelince gider.
-- Her komutun bir kimliği var. Aynı komut iki kez gelirse bir kez işlenir; sunucu çökse bile bu bilgi diskte kalır.
+- Sunucu her değişiklikte durumu diske yazıyor (`server/data/rooms/KOD/`). Önce geçici bir dosyaya yazıp sonra yerine taşıyor, yarım dosya kalmıyor.
+- Sunucu kapanıp açılırsa oyun kaldığı yerden devam ediyor.
+- Tablet koparsa kendisi tekrar bağlanıyor ve aynı oyuncu olarak dönüyor.
+- Bağlantı yokken yapılan işlem 90 saniye bekletiliyor, bağlantı gelince gidiyor.
+- Aynı komut iki kez gelirse bir kez işleniyor, sunucu çökse bile bu bilgi kaybolmuyor.
 
 ## Yapı
 
 ```
-server/   NestJS 12, socket.io, zod
-  src/game/domain/        kurallar, etaplar, puanlama, uyarılar, ekran görünümleri (saf fonksiyonlar)
-  src/game/persistence/   anlık görüntü, olay günlüğü, görüşme kayıtları
-  src/game/transport/     soket kapısı (komutlar + WebRTC sinyal aktarımı), HTTP uçları
-web/      Next.js 16, Tailwind 4
-  src/lib/phone.ts        telefon motoru: WebRTC, ses değiştirici, tonlar, kayıt
-  src/lib/voice-worklet.ts ses değiştirici (AudioWorklet)
-scripts/  start.ts (servisleri ve güvenli kapıyı açar), https-gateway.ts
+server/   NestJS, socket.io, zod
+  src/game/domain/        kurallar, etaplar, puanlama, uyarılar
+  src/game/persistence/   durum kaydı, olay günlüğü, görüşme kayıtları
+  src/game/transport/     soket ve HTTP uçları
+web/      Next.js, Tailwind
+  src/lib/phone.ts        telefon: WebRTC, ses değiştirici, tonlar, kayıt
+  src/lib/voice-worklet.ts ses değiştirici
+scripts/  start.ts, https-gateway.ts
 ```
 
-## Doğrulama
+## Testler
 
 ```bash
 npm test
 npm run typecheck
 ```
 
-Sunucuda 51 test var. Kurulum, numara doğrulama, tablet eşleme, etap akışı, dört etabın puanlaması (paylaşılan sıra, 3-2-1 ve 2-1-1 dağılımı, elle puan, buton eşleştirme döngüsü ve zaman aşımı, oy sayımı ve açıklanması, bombada eksi puan), telefon (çalma, meşgul, kullanılmayan numara, arayan numarası, süre), uyarı kuralları birim testleriyle; tablet eşleme, sesin yalnız karşı tarafa aktarılması, kayıt yükleme, sunucunun çöküp açılması, tekrar gelen komut, uyarının açılıp kapanması ve CSV gerçek soketle sınanır.
+Sunucuda 51, web'de 4 test var. Puanlama, eşleştirme, telefon ve uyarı kuralları birim testleriyle, tablet bağlantısı, ses aktarımı, kayıt yükleme ve sunucunun çöküp açılması da gerçek soketle test ediliyor.
 
-## Bilinen sınırlar
+## Eksikler
 
-- Ses yalnız aynı yerel ağda çalışır; tabletler ve bilgisayar aynı Wi‑Fi'de olmalı.
-- Pil bilgisi ve ekranı açık tutma iPhone'da sınırlıdır. Tabletlerde otomatik kilit elle kapatılmalı; kontrol listesinde bu madde var.
-- Bildirimler sayfa açıkken çalışır; uygulama kapalıyken bildirim (push) yok.
-- Yönetim anahtarı dışa aktarma ve kayıt bağlantılarında adreste taşınır. Yerel ağ için yeterli, internete açılacaksa değişmeli.
-- Tek sunucu süreci için yazıldı.
+- Ses sadece aynı Wi-Fi'de çalışıyor.
+- iPhone'da pil bilgisi alınamıyor ve ekranın açık kalması garanti değil. Tabletlerde otomatik kilidi elle kapatmak gerekiyor, kontrol listesinde bu da var.
+- Bildirimler sadece sayfa açıkken geliyor.
+- Yönetim anahtarı bazı bağlantılarda adreste taşınıyor. Yerel ağda sorun değil ama internete açılacaksa değişmesi lazım.
+- Tek sunucuda çalışacak şekilde yazıldı.
