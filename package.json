@@ -1,0 +1,14 @@
+{
+  "name": "yalan-hatti",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "setup": "npm --prefix server install && npm --prefix web install",
+    "build": "npm --prefix server run build && npm --prefix web run build",
+    "start": "node scripts/start.ts",
+    "test": "npm --prefix server test && npm --prefix web test",
+    "typecheck": "npm --prefix server run typecheck && npm --prefix web run typecheck"
+  }
+}

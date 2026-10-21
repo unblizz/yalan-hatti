@@ -1,0 +1,166 @@
+@import 'tailwindcss';
+
+:root {
+  --paper: #ffffff;
+  --ink: #0a0a0a;
+  --soft: #f5f5f5;
+  --quiet: #6b6b6b;
+  --line: rgba(10, 10, 10, 0.1);
+  --line-strong: rgba(10, 10, 10, 0.22);
+  --live: #d1342c;
+  --ok: #1d7f46;
+  --warn: #a15c00;
+  --bad: #c62828;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0a0a0a;
+    --ink: #f5f3ee;
+    --soft: #151515;
+    --quiet: #a39e95;
+    --line: rgba(245, 243, 238, 0.11);
+    --line-strong: rgba(245, 243, 238, 0.22);
+    --live: #ff5a4f;
+    --ok: #4ade80;
+    --warn: #f5b041;
+    --bad: #f87171;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-soft: var(--soft);
+  --color-quiet: var(--quiet);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-live: var(--live);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  min-height: 100dvh;
+  font-variant-numeric: tabular-nums;
+}
+
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes enter-down {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes pop {
+  40% {
+    transform: scale(1.14);
+  }
+}
+
+@keyframes tick {
+  0% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes attention {
+  0%,
+  100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: color-mix(in srgb, var(--bad) 12%, transparent);
+  }
+}
+
+@keyframes sweep {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.animate-enter {
+  animation: enter 420ms var(--ease-out) both;
+}
+
+.animate-enter-down {
+  animation: enter-down 360ms var(--ease-out) both;
+}
+
+.animate-pop {
+  animation: pop 560ms var(--ease-spring);
+}
+
+.animate-tick {
+  animation: tick 380ms var(--ease-out);
+}
+
+.animate-attention {
+  animation: attention 1.4s ease-in-out infinite;
+}
+
+@keyframes flash {
+  0% {
+    opacity: 0;
+  }
+  8%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-live {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.animate-flash {
+  animation: flash 3s ease-out forwards;
+}
+
+.animate-live {
+  animation: pulse-live 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-flash,
+  .animate-live,
+  .animate-enter,
+  .animate-enter-down,
+  .animate-pop,
+  .animate-tick,
+  .animate-attention {
+    animation: none;
+  }
+}
